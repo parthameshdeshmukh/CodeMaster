@@ -30,7 +30,7 @@ export const difficultyEnum = z.enum(["easy", "medium", "hard"]);
 export type Difficulty = z.infer<typeof difficultyEnum>;
 
 // Programming languages supported
-export const languageEnum = z.enum(["javascript", "python", "java", "cpp", "rust", "go"]);
+export const languageEnum = z.enum(["javascript", "python", "java", "cpp", "rust", "go", "css"]);
 export type Language = z.infer<typeof languageEnum>;
 
 // Challenges table

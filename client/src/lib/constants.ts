@@ -14,7 +14,8 @@ export const LANGUAGE_VARIANTS: Record<Language, { name: string, icon: string }>
   java: { name: "Java", icon: "java" },
   cpp: { name: "C++", icon: "cpp" },
   rust: { name: "Rust", icon: "rs" },
-  go: { name: "Go", icon: "go" }
+  go: { name: "Go", icon: "go" },
+  css: { name: "CSS", icon: "css" }
 };
 
 // Activity type variants
@@ -159,5 +160,30 @@ func IsPalindrome(s string) bool {
 func main() {
     fmt.Println(IsPalindrome("racecar")) // Should return true
     fmt.Println(IsPalindrome("hello"))   // Should return false
+}`,
+
+  css: `.container {
+  /* Define your container styles here */
+  width: 300px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
+.box {
+  /* Create a box with appropriate styling */
+  width: 100px;
+  height: 100px;
+  background-color: #3498db;
+  margin: 10px;
+  
+  /* Add transitions, transformations or other properties as needed */
+  transition: all 0.3s ease;
+}
+
+/* Style the box on hover */
+.box:hover {
+  transform: scale(1.1);
+  background-color: #2980b9;
 }`
 };
