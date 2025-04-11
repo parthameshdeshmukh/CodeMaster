@@ -2,280 +2,174 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Transform = () => {
-  const [transform, setTransform] = useState({
-    rotate: 0,
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
-    skew: 0
-  });
+  const [rotate, setRotate] = useState(0);
+  const [scaleX, setScaleX] = useState(1);
+  const [scaleY, setScaleY] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [transformOrigin, setTransformOrigin] = useState("center");
   
-  const [animation, setAnimation] = useState({
-    isAnimated: false,
-    type: 'spin',
-  });
-  
-  const [transition, setTransition] = useState({
-    duration: 0.3,
-    timing: 'ease'
-  });
-
+  // Generate the CSS code based on current state
   const getTransformCode = () => {
-    if (animation.isAnimated) {
-      switch (animation.type) {
-        case 'spin':
-          return `.element {
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    const transforms = [];
+    
+    if (rotate !== 0) transforms.push(`rotate(${rotate}deg)`);
+    if (scaleX !== 1 || scaleY !== 1) transforms.push(`scale(${scaleX}, ${scaleY})`);
+    if (translateX !== 0 || translateY !== 0) transforms.push(`translate(${translateX}px, ${translateY}px)`);
+    
+    return `.transformed-element {
+  transform: ${transforms.length ? transforms.join(' ') : 'none'};
+  transform-origin: ${transformOrigin};
 }`;
-        case 'pulse':
-          return `.element {
-  animation: pulse 1.5s ease infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}`;
-        case 'bounce':
-          return `.element {
-  animation: bounce 1s ease infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}`;
-        case 'shake':
-          return `.element {
-  animation: shake 0.5s ease-in-out infinite;
-}
-
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-10px);
-  }
-  75% {
-    transform: translateX(10px);
-  }
-}`;
-        default:
-          return '';
-      }
-    } else {
-      return `.element {
-  transform: rotate(${transform.rotate}deg) scale(${transform.scale}) translateX(${transform.translateX}px) translateY(${transform.translateY}px) skew(${transform.skew}deg);
-  transition: all ${transition.duration}s ${transition.timing};
-}`;
-    }
   };
-
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transform & Animation</CardTitle>
+        <CardTitle>CSS Transform</CardTitle>
         <CardDescription>
-          Learn how transform properties can change element appearance and position.
+          Learn how CSS transform property can rotate, scale, and move elements.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Transform visualization */}
-          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-            <div className="relative w-full h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-              <div
-                className={`w-32 h-32 bg-teal-500 text-white flex items-center justify-center rounded-lg transform transition-all ${animation.isAnimated ? `animate-${animation.type}` : ''}`}
-                style={{
-                  transform: animation.isAnimated 
-                    ? 'none' 
-                    : `rotate(${transform.rotate}deg) scale(${transform.scale}) translateX(${transform.translateX}px) translateY(${transform.translateY}px) skew(${transform.skew}deg)`,
-                  transition: `all ${transition.duration}s ${transition.timing}`
-                }}
-              >
-                <div className="text-center">
-                  <div>Element</div>
-                  {animation.isAnimated && (
-                    <div className="text-xs mt-1">{animation.type}</div>
-                  )}
+          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50 overflow-auto">
+            <div 
+              className="min-h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 p-6 flex items-center justify-center"
+            >
+              <div className="relative w-full h-full flex items-center justify-center">
+                {/* Reference lines */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-0.5 h-full bg-gray-200 dark:bg-gray-700 opacity-50"></div>
+                  <div className="h-0.5 w-full bg-gray-200 dark:bg-gray-700 opacity-50"></div>
+                </div>
+                
+                {/* Transform origin indicator */}
+                <div 
+                  className="absolute w-3 h-3 rounded-full bg-red-500 z-10"
+                  style={{
+                    top: transformOrigin.includes('top') ? '25%' : 
+                          transformOrigin.includes('bottom') ? '75%' : '50%',
+                    left: transformOrigin.includes('left') ? '25%' : 
+                           transformOrigin.includes('right') ? '75%' : '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                ></div>
+                
+                {/* Original element (ghost) */}
+                <div 
+                  className="absolute w-32 h-32 border-2 border-dashed border-gray-400 dark:border-gray-500 flex items-center justify-center"
+                >
+                  <span className="text-xs text-gray-400 dark:text-gray-500">Original</span>
+                </div>
+                
+                {/* Transformed element */}
+                <div 
+                  className="w-32 h-32 bg-indigo-100 dark:bg-indigo-900/50 border-2 border-indigo-500 flex items-center justify-center text-indigo-900 dark:text-indigo-100 shadow-lg"
+                  style={{
+                    transform: `${rotate !== 0 ? `rotate(${rotate}deg)` : ''} ${scaleX !== 1 || scaleY !== 1 ? `scale(${scaleX}, ${scaleY})` : ''} ${translateX !== 0 || translateY !== 0 ? `translate(${translateX}px, ${translateY}px)` : ''}`,
+                    transformOrigin: transformOrigin
+                  }}
+                >
+                  Transformed
                 </div>
               </div>
             </div>
           </div>
           
           {/* Controls for transform */}
-          <div>
-            <Tabs defaultValue="transform">
-              <TabsList className="grid grid-cols-3 mb-4">
-                <TabsTrigger value="transform">Transform</TabsTrigger>
-                <TabsTrigger value="animation">Animation</TabsTrigger>
-                <TabsTrigger value="transition">Transition</TabsTrigger>
-              </TabsList>
+          <div className="space-y-6">
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+              <h3 className="font-semibold mb-3">Transform Properties</h3>
               
-              <TabsContent value="transform" className="space-y-4">
+              <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Rotate: {transform.rotate}°</label>
+                    <label className="text-sm font-medium">rotate: {rotate}deg</label>
                   </div>
                   <Slider 
-                    value={[transform.rotate]} 
+                    value={[rotate]} 
                     min={-180} 
                     max={180} 
-                    step={1}
-                    onValueChange={(value) => setTransform(prev => ({ ...prev, rotate: value[0] }))}
-                    disabled={animation.isAnimated}
+                    step={15}
+                    onValueChange={(value) => setRotate(value[0])}
                   />
                 </div>
                 
                 <div>
                   <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Scale: {transform.scale.toFixed(1)}</label>
+                    <label className="text-sm font-medium">scaleX: {scaleX.toFixed(1)}</label>
                   </div>
                   <Slider 
-                    value={[transform.scale]} 
+                    value={[scaleX]} 
                     min={0.5} 
                     max={2} 
                     step={0.1}
-                    onValueChange={(value) => setTransform(prev => ({ ...prev, scale: value[0] }))}
-                    disabled={animation.isAnimated}
+                    onValueChange={(value) => setScaleX(value[0])}
                   />
                 </div>
                 
                 <div>
                   <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Translate X: {transform.translateX}px</label>
+                    <label className="text-sm font-medium">scaleY: {scaleY.toFixed(1)}</label>
                   </div>
                   <Slider 
-                    value={[transform.translateX]} 
-                    min={-100} 
-                    max={100} 
-                    step={1}
-                    onValueChange={(value) => setTransform(prev => ({ ...prev, translateX: value[0] }))}
-                    disabled={animation.isAnimated}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Translate Y: {transform.translateY}px</label>
-                  </div>
-                  <Slider 
-                    value={[transform.translateY]} 
-                    min={-100} 
-                    max={100} 
-                    step={1}
-                    onValueChange={(value) => setTransform(prev => ({ ...prev, translateY: value[0] }))}
-                    disabled={animation.isAnimated}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Skew: {transform.skew}°</label>
-                  </div>
-                  <Slider 
-                    value={[transform.skew]} 
-                    min={-45} 
-                    max={45} 
-                    step={1}
-                    onValueChange={(value) => setTransform(prev => ({ ...prev, skew: value[0] }))}
-                    disabled={animation.isAnimated}
-                  />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="animation" className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <input 
-                    type="checkbox" 
-                    id="isAnimated" 
-                    checked={animation.isAnimated} 
-                    onChange={(e) => setAnimation(prev => ({ ...prev, isAnimated: e.target.checked }))}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <label htmlFor="isAnimated" className="text-sm font-medium">Enable Animation</label>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Animation Type</label>
-                  <Select 
-                    value={animation.type}
-                    onValueChange={(value) => setAnimation(prev => ({ ...prev, type: value }))}
-                    disabled={!animation.isAnimated}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select animation type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="spin">Spin</SelectItem>
-                      <SelectItem value="pulse">Pulse</SelectItem>
-                      <SelectItem value="bounce">Bounce</SelectItem>
-                      <SelectItem value="shake">Shake</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="transition" className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">Duration: {transition.duration}s</label>
-                  </div>
-                  <Slider 
-                    value={[transition.duration]} 
-                    min={0.1} 
+                    value={[scaleY]} 
+                    min={0.5} 
                     max={2} 
                     step={0.1}
-                    onValueChange={(value) => setTransition(prev => ({ ...prev, duration: value[0] }))}
+                    onValueChange={(value) => setScaleY(value[0])}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Timing Function</label>
-                  <Select 
-                    value={transition.timing}
-                    onValueChange={(value) => setTransition(prev => ({ ...prev, timing: value }))}
-                  >
+                  <div className="flex justify-between mb-1">
+                    <label className="text-sm font-medium">translateX: {translateX}px</label>
+                  </div>
+                  <Slider 
+                    value={[translateX]} 
+                    min={-50} 
+                    max={50} 
+                    step={5}
+                    onValueChange={(value) => setTranslateX(value[0])}
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <label className="text-sm font-medium">translateY: {translateY}px</label>
+                  </div>
+                  <Slider 
+                    value={[translateY]} 
+                    min={-50} 
+                    max={50} 
+                    step={5}
+                    onValueChange={(value) => setTranslateY(value[0])}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">transform-origin</label>
+                  <Select value={transformOrigin} onValueChange={setTransformOrigin}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select timing function" />
+                      <SelectValue placeholder="Select transform origin" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ease">ease</SelectItem>
-                      <SelectItem value="ease-in">ease-in</SelectItem>
-                      <SelectItem value="ease-out">ease-out</SelectItem>
-                      <SelectItem value="ease-in-out">ease-in-out</SelectItem>
-                      <SelectItem value="linear">linear</SelectItem>
+                      <SelectItem value="center">center</SelectItem>
+                      <SelectItem value="top left">top left</SelectItem>
+                      <SelectItem value="top right">top right</SelectItem>
+                      <SelectItem value="bottom left">bottom left</SelectItem>
+                      <SelectItem value="bottom right">bottom right</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
             
-            <div className="mt-8">
+            <div className="mt-4">
               <h3 className="text-lg font-medium mb-2">Generated CSS</h3>
               <pre className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm overflow-x-auto">
                 {getTransformCode()}

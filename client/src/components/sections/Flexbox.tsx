@@ -1,77 +1,81 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 const Flexbox = () => {
   const [flexDirection, setFlexDirection] = useState("row");
   const [justifyContent, setJustifyContent] = useState("flex-start");
   const [alignItems, setAlignItems] = useState("stretch");
   const [flexWrap, setFlexWrap] = useState("nowrap");
-  const [items, setItems] = useState([1, 2, 3]);
-
-  const addItem = () => {
-    if (items.length < 8) {
-      setItems([...items, items.length + 1]);
-    }
-  };
-
-  const removeItem = () => {
-    if (items.length > 1) {
-      setItems(items.slice(0, -1));
-    }
-  };
-
+  const [gap, setGap] = useState(10);
+  
+  // Generate the CSS code based on current state
   const getFlexboxCode = () => {
-    return `.container {
+    return `.flex-container {
   display: flex;
   flex-direction: ${flexDirection};
   justify-content: ${justifyContent};
   align-items: ${alignItems};
   flex-wrap: ${flexWrap};
+  gap: ${gap}px;
 }`;
   };
-
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Flexbox</CardTitle>
         <CardDescription>
-          Learn how items align and distribute in a flexible container.
+          Learn how CSS Flexbox works with containers and items for layout.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Flexbox visualization */}
-          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50 overflow-auto">
             <div 
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg h-[400px] flex p-2"
-              style={{
-                flexDirection: flexDirection as any,
-                justifyContent: justifyContent,
-                alignItems: alignItems,
-                flexWrap: flexWrap as any
-              }}
+              className="min-h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 p-6"
             >
-              {items.map((item, index) => (
-                <div key={index} className="flex-item bg-blue-500 dark:bg-blue-600 text-white p-4 m-1 rounded-md flex items-center justify-center min-w-16 min-h-16">
-                  Item {item}
-                </div>
-              ))}
+              <div 
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-4 rounded"
+                style={{ 
+                  display: 'flex',
+                  flexDirection: flexDirection as any,
+                  justifyContent: justifyContent,
+                  alignItems: alignItems,
+                  flexWrap: flexWrap as any,
+                  gap: `${gap}px`,
+                  minHeight: '300px'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className={`flex items-center justify-center p-4 text-lg font-medium bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded`}
+                    style={{ 
+                      width: '80px',
+                      height: i % 3 === 0 ? '120px' : i % 3 === 1 ? '80px' : '100px'
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           
           {/* Controls for flexbox */}
           <div className="space-y-6">
             <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold mb-3">Container Properties</h3>
+              <h3 className="font-semibold mb-3">Flexbox Properties</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">flex-direction</label>
+                  <label className="block text-sm font-medium mb-2">flex-direction</label>
                   <Select value={flexDirection} onValueChange={setFlexDirection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select direction" />
+                      <SelectValue placeholder="Select flex direction" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="row">row</SelectItem>
@@ -83,10 +87,10 @@ const Flexbox = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">justify-content</label>
+                  <label className="block text-sm font-medium mb-2">justify-content</label>
                   <Select value={justifyContent} onValueChange={setJustifyContent}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select justification" />
+                      <SelectValue placeholder="Select justify content" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="flex-start">flex-start</SelectItem>
@@ -100,10 +104,10 @@ const Flexbox = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">align-items</label>
+                  <label className="block text-sm font-medium mb-2">align-items</label>
                   <Select value={alignItems} onValueChange={setAlignItems}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select alignment" />
+                      <SelectValue placeholder="Select align items" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="stretch">stretch</SelectItem>
@@ -116,10 +120,10 @@ const Flexbox = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">flex-wrap</label>
+                  <label className="block text-sm font-medium mb-2">flex-wrap</label>
                   <Select value={flexWrap} onValueChange={setFlexWrap}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select wrap behavior" />
+                      <SelectValue placeholder="Select flex wrap" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="nowrap">nowrap</SelectItem>
@@ -128,14 +132,19 @@ const Flexbox = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold mb-3">Items</h3>
-              <div className="flex gap-2">
-                <Button onClick={addItem} disabled={items.length >= 8} size="sm">Add Item</Button>
-                <Button onClick={removeItem} disabled={items.length <= 1} variant="outline" size="sm">Remove Item</Button>
+                
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <label className="text-sm font-medium">gap: {gap}px</label>
+                  </div>
+                  <Slider 
+                    value={[gap]} 
+                    min={0} 
+                    max={40} 
+                    step={5}
+                    onValueChange={(value) => setGap(value[0])}
+                  />
+                </div>
               </div>
             </div>
             

@@ -4,55 +4,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 
 const Positioning = () => {
-  const [position, setPosition] = useState("static");
-  const [top, setTop] = useState(50);
-  const [left, setLeft] = useState(50);
-  const [zIndex, setZIndex] = useState(1);
+  const [position, setPosition] = useState("relative");
+  const [top, setTop] = useState(20);
+  const [left, setLeft] = useState(20);
+  const [right, setRight] = useState(0);
+  const [bottom, setBottom] = useState(0);
   
+  // Generate the CSS code based on current state
   const getPositioningCode = () => {
-    if (position === "static") {
-      return `.element {
-  position: static;
-  /* static positioned elements are not affected by top, right, bottom, left, or z-index */
-}`;
-    }
-    
-    return `.element {
+    return `.positioned-element {
   position: ${position};
-  top: ${top}px;
-  left: ${left}px;
-  z-index: ${zIndex};
+  top: ${position === "static" ? "auto" : `${top}px`};
+  left: ${position === "static" ? "auto" : `${left}px`};
+  right: ${position === "static" ? "auto" : `${right}px`};
+  bottom: ${position === "static" ? "auto" : `${bottom}px`};
 }`;
   };
-
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Positioning</CardTitle>
+        <CardTitle>CSS Positioning</CardTitle>
         <CardDescription>
-          Learn how position properties affect element placement in the document flow.
+          Learn how CSS positioning works with static, relative, absolute, and fixed positions.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Positioning visualization */}
-          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-            <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg h-[400px] p-4">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="absolute bg-gray-300 dark:bg-gray-700 w-24 h-24 rounded-md flex items-center justify-center">
-                  Parent
+          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50 overflow-auto">
+            <div 
+              className="relative min-h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 p-6"
+            >
+              <div className="relative bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-4 rounded min-h-[300px]">
+                {/* Parent element */}
+                <div className="absolute inset-0 border-2 border-dotted border-blue-300 dark:border-blue-700 m-4 flex items-center justify-center opacity-30">
+                  <span className="text-blue-500 dark:text-blue-400 text-xs font-medium">Parent Element (position: relative)</span>
                 </div>
                 
+                {/* Positioned element */}
                 <div 
-                  className="bg-red-500 dark:bg-red-600 text-white w-16 h-16 rounded-md flex items-center justify-center"
+                  className="w-28 h-28 bg-green-100 dark:bg-green-900 border-2 border-green-500 rounded flex items-center justify-center p-2 text-sm text-green-900 dark:text-green-100"
                   style={{
                     position: position as any,
-                    top: `${top}px`,
-                    left: `${left}px`,
-                    zIndex: zIndex,
+                    top: position === "static" ? "auto" : `${top}px`,
+                    left: position === "static" ? "auto" : `${left}px`,
+                    right: position === "static" ? "auto" : `${right}px`,
+                    bottom: position === "static" ? "auto" : `${bottom}px`,
                   }}
                 >
-                  Element
+                  Positioned Element
+                </div>
+                
+                {/* Static element for reference */}
+                <div className="w-28 h-16 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm text-gray-700 dark:text-gray-300 rounded mt-2 mb-2">
+                  Static Element
                 </div>
               </div>
             </div>
@@ -65,10 +71,10 @@ const Positioning = () => {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">position</label>
+                  <label className="block text-sm font-medium mb-2">position</label>
                   <Select value={position} onValueChange={setPosition}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select position type" />
+                      <SelectValue placeholder="Select position value" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="static">static</SelectItem>
@@ -78,49 +84,71 @@ const Positioning = () => {
                       <SelectItem value="sticky">sticky</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {position === "static" && "Static (default): Element is positioned according to the normal flow of the document."}
+                    {position === "relative" && "Relative: Element is positioned relative to its normal position."}
+                    {position === "absolute" && "Absolute: Element is positioned relative to the nearest positioned ancestor."}
+                    {position === "fixed" && "Fixed: Element is positioned relative to the viewport and doesn't move when scrolled."}
+                    {position === "sticky" && "Sticky: Element is positioned based on scroll position. It's like a hybrid of relative and fixed."}
+                  </p>
                 </div>
                 
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">top: {top}px</label>
-                  </div>
-                  <Slider 
-                    value={[top]} 
-                    min={0} 
-                    max={200} 
-                    step={1}
-                    onValueChange={(value) => setTop(value[0])}
-                    disabled={position === "static"}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">left: {left}px</label>
-                  </div>
-                  <Slider 
-                    value={[left]} 
-                    min={0} 
-                    max={200} 
-                    step={1}
-                    onValueChange={(value) => setLeft(value[0])}
-                    disabled={position === "static"}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="text-sm font-medium">z-index: {zIndex}</label>
-                  </div>
-                  <Slider 
-                    value={[zIndex]} 
-                    min={-1} 
-                    max={10} 
-                    step={1}
-                    onValueChange={(value) => setZIndex(value[0])}
-                    disabled={position === "static"}
-                  />
-                </div>
+                {position !== "static" && (
+                  <>
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-sm font-medium">top: {top}px</label>
+                      </div>
+                      <Slider 
+                        value={[top]} 
+                        min={0} 
+                        max={100} 
+                        step={5}
+                        onValueChange={(value) => setTop(value[0])}
+                      />
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-sm font-medium">left: {left}px</label>
+                      </div>
+                      <Slider 
+                        value={[left]} 
+                        min={0} 
+                        max={100} 
+                        step={5}
+                        onValueChange={(value) => setLeft(value[0])}
+                      />
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-sm font-medium">right: {right}px</label>
+                      </div>
+                      <Slider 
+                        value={[right]} 
+                        min={0} 
+                        max={100} 
+                        step={5}
+                        onValueChange={(value) => setRight(value[0])}
+                      />
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-sm font-medium">bottom: {bottom}px</label>
+                      </div>
+                      <Slider 
+                        value={[bottom]} 
+                        min={0} 
+                        max={100} 
+                        step={5}
+                        onValueChange={(value) => setBottom(value[0])}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             

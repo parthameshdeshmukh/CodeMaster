@@ -2,81 +2,86 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 const Transitions = () => {
   const [duration, setDuration] = useState(0.5);
   const [timingFunction, setTimingFunction] = useState("ease");
-  const [property, setProperty] = useState("all");
   const [delay, setDelay] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [translateX, setTranslateX] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   
+  // Generate the CSS code based on current state
   const getTransitionCode = () => {
-    return `.element {
-  /* Initial state */
-  background-color: #3498db;
-  transform: scale(1) rotate(0deg);
-  opacity: 1;
-  transition: ${property} ${duration}s ${timingFunction} ${delay}s;
+    return `.transition-element {
+  transition-property: transform;
+  transition-duration: ${duration}s;
+  transition-timing-function: ${timingFunction};
+  transition-delay: ${delay}s;
 }
 
-.element:hover {
-  /* Hover state */
-  background-color: #2980b9;
-  transform: scale(1.2) rotate(5deg);
-  opacity: 0.9;
+.transition-element:hover {
+  transform: translateX(${translateX}px);
 }`;
   };
-
+  
+  // Handle play animation
+  const handlePlayAnimation = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, (duration + delay) * 1000 + 100);
+  };
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transitions</CardTitle>
+        <CardTitle>CSS Transitions</CardTitle>
         <CardDescription>
-          Learn how transitions create smooth animations between property changes.
+          Learn how CSS transitions create smooth animations between property changes.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Transitions visualization */}
-          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-            <div className="w-full h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-              <div
-                className="w-32 h-32 bg-blue-500 dark:bg-blue-600 text-white flex items-center justify-center rounded-lg cursor-pointer"
-                style={{
-                  backgroundColor: isHovered ? '#2980b9' : '#3498db',
-                  transform: isHovered ? 'scale(1.2) rotate(5deg)' : 'scale(1) rotate(0deg)',
-                  opacity: isHovered ? 0.9 : 1,
-                  transition: `${property} ${duration}s ${timingFunction} ${delay}s`
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                Hover me
+          {/* Transition visualization */}
+          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50 overflow-auto">
+            <div 
+              className="min-h-[400px] border-2 border-dashed border-gray-300 dark:border-gray-600 p-6 flex items-center justify-center"
+            >
+              <div className="relative w-full h-64 flex items-center justify-center">
+                {/* Track line */}
+                <div className="absolute h-px w-full bg-gray-300 dark:bg-gray-600"></div>
+                
+                {/* Element with transition */}
+                <div 
+                  className="w-24 h-24 bg-orange-100 dark:bg-orange-900/50 border-2 border-orange-500 flex items-center justify-center text-orange-900 dark:text-orange-100 shadow-lg"
+                  style={{
+                    transform: isAnimating ? `translateX(${translateX}px)` : 'translateX(0px)',
+                    transition: `transform ${duration}s ${timingFunction} ${delay}s`
+                  }}
+                >
+                  Transition
+                </div>
+              </div>
+              
+              <div className="mt-8 flex justify-center">
+                <Button 
+                  onClick={handlePlayAnimation}
+                  disabled={isAnimating}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  {isAnimating ? "Animating..." : "Play Animation"}
+                </Button>
               </div>
             </div>
           </div>
           
-          {/* Controls for transitions */}
+          {/* Controls for transition */}
           <div className="space-y-6">
             <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
               <h3 className="font-semibold mb-3">Transition Properties</h3>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">property</label>
-                  <Select value={property} onValueChange={setProperty}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select property" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">all</SelectItem>
-                      <SelectItem value="background-color">background-color</SelectItem>
-                      <SelectItem value="transform">transform</SelectItem>
-                      <SelectItem value="opacity">opacity</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
                 <div>
                   <div className="flex justify-between mb-1">
                     <label className="text-sm font-medium">duration: {duration}s</label>
@@ -91,18 +96,18 @@ const Transitions = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">timing function</label>
+                  <label className="block text-sm font-medium mb-2">timing-function</label>
                   <Select value={timingFunction} onValueChange={setTimingFunction}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select timing function" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ease">ease</SelectItem>
+                      <SelectItem value="linear">linear</SelectItem>
                       <SelectItem value="ease-in">ease-in</SelectItem>
                       <SelectItem value="ease-out">ease-out</SelectItem>
                       <SelectItem value="ease-in-out">ease-in-out</SelectItem>
-                      <SelectItem value="linear">linear</SelectItem>
-                      <SelectItem value="cubic-bezier(0.68, -0.55, 0.27, 1.55)">bounce</SelectItem>
+                      <SelectItem value="cubic-bezier(0.68, -0.55, 0.27, 1.55)">cubic-bezier (bouncy)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -119,6 +124,24 @@ const Transitions = () => {
                     onValueChange={(value) => setDelay(value[0])}
                   />
                 </div>
+                
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <label className="text-sm font-medium">translateX: {translateX}px</label>
+                  </div>
+                  <Slider 
+                    value={[translateX]} 
+                    min={0} 
+                    max={200} 
+                    step={10}
+                    onValueChange={(value) => setTranslateX(value[0])}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <p>Transitions enable smooth changes between property values over time. They're great for hover effects and simple animations.</p>
+                <p className="mt-2">The timing function controls the acceleration curve of the animation. Different functions create different feels.</p>
               </div>
             </div>
             

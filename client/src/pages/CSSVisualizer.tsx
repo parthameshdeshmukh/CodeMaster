@@ -70,12 +70,13 @@ export default function CSSVisualizer() {
   const checkForCertificate = async () => {
     try {
       // Call API to check if user qualifies for a certificate
-      const response = await apiRequest("/api/certificates/check-eligibility", {
-        method: "POST",
-        data: { language: "css" }
-      });
+      const response = await apiRequest(
+        "POST",
+        "/api/certificates/check-eligibility", 
+        { language: "css" }
+      );
       
-      const data = response as {eligible: boolean, certificate: any, username: string};
+      const data = await response.json();
       
       if (data.eligible) {
         setCertificate(data.certificate);
