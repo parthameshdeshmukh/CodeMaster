@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { Code, Trophy, Medal, LayoutDashboard } from 'lucide-react';
+import { Code, Trophy, Medal, LayoutDashboard, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useQuery } from '@tanstack/react-query';
@@ -49,6 +49,14 @@ export function Header() {
                   location === '/leaderboard' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}>
                   Leaderboard
+                </div>
+              </Link>
+              <Link href="/css-visualizer">
+                <div className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium cursor-pointer ${
+                  location === '/css-visualizer' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}>
+                  <Palette className="h-4 w-4 mr-1" />
+                  CSS Visualizer
                 </div>
               </Link>
             </nav>

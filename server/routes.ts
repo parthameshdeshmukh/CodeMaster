@@ -172,6 +172,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ===== Certificate Routes =====
+  
+  // Check certificate eligibility
+  app.post('/api/certificates/check-eligibility', async (req, res) => {
+    try {
+      const { language } = req.body;
+      
+      if (!language) {
+        return res.status(400).json({ error: 'Language is required' });
+      }
+      
+      // Check if user has completed all challenges in this language
+      const completedAllInLanguage = await storage.hasCompletedAllChallengesInLanguage(language as Language);
+      
+      if (completedAllInLanguage) {
+        const user = await storage.getCurrentUser();
+        if (user) {
+          const certificateId = generateCertificateId(language, user.username);
+          
+          // Create the certificate
+          const certificate = await storage.createCertificate({
+            userId: user.id,
+            title: `${language.charAt(0).toUpperCase() + language.slice(1)} Mastery`,
+            language: language,
+            certificateId: certificateId
+          });
+          
+          return res.json({
+            eligible: true,
+            certificate,
+            username: user.username
+          });
+        }
+      }
+      
+      // If not eligible
+      res.json({ eligible: false });
+    } catch (error) {
+      console.error('Error checking certificate eligibility:', error);
+      res.status(500).json({ error: 'Error checking certificate eligibility' });
+    }
+  });
+  
   // ===== Leaderboard Routes =====
   
   // Get leaderboard

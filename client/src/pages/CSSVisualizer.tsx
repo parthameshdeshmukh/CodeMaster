@@ -41,7 +41,7 @@ export default function CSSVisualizer() {
     toast({
       title: "Section Completed!",
       description: `You've completed the ${getSectionName(section)} section.`,
-      variant: "success"
+      variant: "default"
     });
     
     // Check if all sections are completed
@@ -70,14 +70,16 @@ export default function CSSVisualizer() {
   const checkForCertificate = async () => {
     try {
       // Call API to check if user qualifies for a certificate
-      const response = await apiRequest<{eligible: boolean, certificate: any, username: string}>("/api/certificates/check-eligibility", {
+      const response = await apiRequest("/api/certificates/check-eligibility", {
         method: "POST",
         data: { language: "css" }
       });
       
-      if (response.eligible) {
-        setCertificate(response.certificate);
-        setUsername(response.username);
+      const data = response as {eligible: boolean, certificate: any, username: string};
+      
+      if (data.eligible) {
+        setCertificate(data.certificate);
+        setUsername(data.username);
         setTimeout(() => {
           certificateModalRef.current?.open();
         }, 500);
