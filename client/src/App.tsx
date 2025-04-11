@@ -9,7 +9,6 @@ const Challenges = lazy(() => import('@/pages/Challenges'));
 const ChallengeDetail = lazy(() => import('@/pages/ChallengeDetail'));
 const Certificates = lazy(() => import('@/pages/Certificates'));
 const Leaderboard = lazy(() => import('@/pages/Leaderboard'));
-const CSSVisualizer = lazy(() => import('@/pages/CSSVisualizer'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -33,7 +32,6 @@ function Router() {
         <Route path="/challenges/:id" component={ChallengeDetail} />
         <Route path="/certificates" component={Certificates} />
         <Route path="/leaderboard" component={Leaderboard} />
-        <Route path="/css-visualizer" component={CSSVisualizer} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
