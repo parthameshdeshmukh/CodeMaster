@@ -188,9 +188,10 @@ export class DatabaseStorage implements IStorage {
     
     // If no user, return challenges without progress
     if (!user) {
-      return allChallenges.map(challenge => ({
-        ...challenge
-      }));
+      return allChallenges.map(challenge => {
+        // Type casting to ChallengeWithProgress to satisfy type constraints
+        return challenge as ChallengeWithProgress;
+      });
     }
     
     // Get user progress for all challenges
@@ -207,11 +208,14 @@ export class DatabaseStorage implements IStorage {
     // Merge challenges with progress
     return allChallenges.map(challenge => {
       const progress = progressMap.get(challenge.id);
-      return {
+      // Explicit type construction for ChallengeWithProgress
+      const result: ChallengeWithProgress = {
         ...challenge,
         userStatus: progress?.status,
-        userCode: progress?.code
+        // Convert null to undefined to match the expected type
+        userCode: progress?.code || undefined
       };
+      return result;
     });
   }
 
@@ -521,18 +525,18 @@ export class DatabaseStorage implements IStorage {
         const points = pointsResult[0]?.sum || 0;
         
         // Count certificates
-        const certificatesResult = await tx
+        const certResult = await tx
           .select({ count: sql<number>`count(*)` })
           .from(certificates)
           .where(eq(certificates.userId, user.id));
           
-        const certificates = certificatesResult[0]?.count || 0;
+        const certificateCount = certResult[0]?.count || 0;
         
         return {
           ...user,
           points,
           completedChallenges,
-          certificates,
+          certificates: certificateCount,
         };
       }));
       
