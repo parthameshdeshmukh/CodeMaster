@@ -24,32 +24,32 @@ export function Header() {
             </div>
             <nav className="hidden md:ml-6 md:flex md:space-x-8">
               <Link href="/challenges">
-                <div className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium cursor-pointer ${
+                <a className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium ${
                   location === '/challenges' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}>
                   Challenges
-                </div>
+                </a>
               </Link>
               <Link href="/dashboard">
-                <div className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium cursor-pointer ${
+                <a className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium ${
                   location === '/dashboard' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}>
                   Dashboard
-                </div>
+                </a>
               </Link>
               <Link href="/certificates">
-                <div className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium cursor-pointer ${
+                <a className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium ${
                   location === '/certificates' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}>
                   Certificates
-                </div>
+                </a>
               </Link>
               <Link href="/leaderboard">
-                <div className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium cursor-pointer ${
+                <a className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium ${
                   location === '/leaderboard' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}>
                   Leaderboard
-                </div>
+                </a>
               </Link>
             </nav>
           </div>
@@ -57,9 +57,9 @@ export function Header() {
             <div className="flex-shrink-0">
               <Button asChild>
                 <Link href="/challenges">
-                  <div className="relative inline-flex items-center px-4 py-2">
+                  <a className="relative inline-flex items-center px-4 py-2">
                     <span>New Challenge</span>
-                  </div>
+                  </a>
                 </Link>
               </Button>
             </div>

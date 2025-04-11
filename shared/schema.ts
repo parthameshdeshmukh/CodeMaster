@@ -1,7 +1,6 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
 
 // Users table
 export const users = pgTable("users", {
@@ -14,12 +13,6 @@ export const users = pgTable("users", {
   joinedDate: timestamp("joined_date").defaultNow(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  userProgress: many(userProgress),
-  certificates: many(certificates),
-  activities: many(userActivity),
-}));
-
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -30,7 +23,7 @@ export const difficultyEnum = z.enum(["easy", "medium", "hard"]);
 export type Difficulty = z.infer<typeof difficultyEnum>;
 
 // Programming languages supported
-export const languageEnum = z.enum(["javascript", "python", "java", "cpp", "rust", "go", "css"]);
+export const languageEnum = z.enum(["javascript", "python", "java", "cpp", "rust", "go"]);
 export type Language = z.infer<typeof languageEnum>;
 
 // Challenges table
@@ -47,10 +40,6 @@ export const challenges = pgTable("challenges", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const challengesRelations = relations(challenges, ({ many }) => ({
-  userProgress: many(userProgress),
-}));
-
 export const insertChallengeSchema = createInsertSchema(challenges).pick({
   title: true,
   description: true,
@@ -65,23 +54,12 @@ export const insertChallengeSchema = createInsertSchema(challenges).pick({
 // User Progress table
 export const userProgress = pgTable("user_progress", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  challengeId: integer("challenge_id").notNull().references(() => challenges.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull(),
+  challengeId: integer("challenge_id").notNull(),
   status: text("status").notNull(), // "started", "completed", "failed"
   code: text("code"),
   completedAt: timestamp("completed_at"),
 });
-
-export const userProgressRelations = relations(userProgress, ({ one }) => ({
-  user: one(users, {
-    fields: [userProgress.userId],
-    references: [users.id],
-  }),
-  challenge: one(challenges, {
-    fields: [userProgress.challengeId],
-    references: [challenges.id],
-  }),
-}));
 
 export const insertUserProgressSchema = createInsertSchema(userProgress).pick({
   userId: true,
@@ -93,19 +71,12 @@ export const insertUserProgressSchema = createInsertSchema(userProgress).pick({
 // Certificates table
 export const certificates = pgTable("certificates", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   language: text("language").notNull(),
   issueDate: timestamp("issue_date").defaultNow(),
   certificateId: text("certificate_id").notNull().unique(),
 });
-
-export const certificatesRelations = relations(certificates, ({ one }) => ({
-  user: one(users, {
-    fields: [certificates.userId],
-    references: [users.id],
-  }),
-}));
 
 export const insertCertificateSchema = createInsertSchema(certificates).pick({
   userId: true,
@@ -121,18 +92,11 @@ export type ActivityType = z.infer<typeof activityTypeEnum>;
 // User Activity table to track actions
 export const userActivity = pgTable("user_activity", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull(),
   activityType: text("activity_type").notNull(), // started_challenge, completed_challenge, earned_certificate
   entityId: integer("entity_id").notNull(), // challenge_id or certificate_id
   createdAt: timestamp("created_at").defaultNow(),
 });
-
-export const userActivityRelations = relations(userActivity, ({ one }) => ({
-  user: one(users, {
-    fields: [userActivity.userId],
-    references: [users.id],
-  }),
-}));
 
 export const insertUserActivitySchema = createInsertSchema(userActivity).pick({
   userId: true,

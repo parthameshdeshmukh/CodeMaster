@@ -945,7 +945,4 @@ print(fibonacci(6))  # Should return 8`,
   }
 }
 
-import { DatabaseStorage } from "./dbStorage";
-
-// Change from MemStorage to DatabaseStorage
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
