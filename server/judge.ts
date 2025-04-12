@@ -85,14 +85,19 @@ export async function executeCode(code: string, language: Language, testCases?: 
         const modifiedCode = `
           (function(console) {
             ${code}
-            sandbox.result = ${funcName}(${JSON.stringify(input)});
+            try {
+              sandbox.result = ${funcName}(${JSON.stringify(input)});
+            } catch (err) {
+              sandbox.result = 'Error: ' + err.message;
+            }
           })(sandbox.console);
         `;
         
+        let result;
         eval(modifiedCode.replace('sandbox.result', 'result').replace('sandbox.console', 'console'));
         
         // Get result
-        actualOutput = String(result);
+        actualOutput = result === undefined ? 'Error: result is not defined' : String(result);
         
         // Compare with expected output
         // Simple comparison - in a real system, this would be more sophisticated
