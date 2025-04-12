@@ -1,8 +1,25 @@
-
 import express from 'express';
 
 const app = express();
 app.use(express.json());
+
+// Initial product data
+let products = [];
+
+// Reset products for each test
+app.post('/__test/reset', (req, res) => {
+  products = [
+    { id: 1, name: 'Product 1', price: 100 },
+    { id: 2, name: 'Product 2', price: 200 }
+  ];
+  res.status(200).end();
+});
+
+// Initialize products for first use
+products = [
+  { id: 1, name: 'Product 1', price: 100 },
+  { id: 2, name: 'Product 2', price: 200 }
+];
 
 let items = [];
 let id = 1;

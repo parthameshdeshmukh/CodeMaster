@@ -52,7 +52,7 @@ export async function executeCode(code: string, language: Language, testCases?: 
   }
 
   // Special handling for REST API challenge
-  if (code.includes('createItemsAPI') && language === 'javascript') { // Changed to 'createItemsAPI' to match edited code
+  if ((code.includes('createItemsAPI') && language === 'javascript') || language === 'python') {
     try {
       // Use the imported Express app
       const agent = supertest(app);
