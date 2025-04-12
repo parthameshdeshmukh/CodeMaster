@@ -52,7 +52,7 @@ export async function executeCode(code: string, language: Language, testCases?: 
   }
 
   // Special handling for REST API challenge
-  if ((code.includes('createItemsAPI') && language === 'javascript') || language === 'python') {
+  if ((code.includes('createItemsAPI') && language === 'javascript') || (code.includes('from flask import') && language === 'python')) {
     try {
       // Use the imported Express app
       const agent = supertest(app);
