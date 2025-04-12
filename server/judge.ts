@@ -1,4 +1,6 @@
 import { Language, TestCase } from "@shared/schema";
+import express, { Request, Response } from "express";
+import supertest from "supertest";
 
 // Simulated code execution environment
 export async function executeCode(code: string, language: Language, testCases?: TestCase[]): Promise<{
@@ -56,6 +58,11 @@ export async function executeCode(code: string, language: Language, testCases?: 
         consoleOutput: `Error: ${error.message}`
       };
     }
+  }
+  
+  // Special handling for REST API challenge
+  if (code.includes('createProductsAPI') && language === 'javascript') {
+    return await evaluateRESTAPI(code, testCases, consoleLog);
   }
   
   // For testing, execute against test cases
@@ -166,4 +173,160 @@ export async function executeCode(code: string, language: Language, testCases?: 
     results,
     consoleOutput
   };
+}
+
+/**
+ * Special evaluation function for the REST API challenge
+ */
+async function evaluateRESTAPI(code: string, testCases: TestCase[], consoleLog: (...args: any[]) => void): Promise<{
+  passed: boolean;
+  results: {
+    input: string;
+    expectedOutput: string;
+    actualOutput: string;
+    passed: boolean;
+  }[];
+  consoleOutput: string;
+}> {
+  let consoleOutput = "Testing REST API implementation...\n";
+  
+  try {
+    // Create a sandbox environment with necessary modules
+    const sandbox = {
+      require: require,
+      console: { log: consoleLog, error: consoleLog },
+      express: express,
+      module: { exports: null }
+    };
+    
+    // Execute the code to get the Express app instance
+    const modifiedCode = `
+      (function(require, console, express, module) {
+        ${code}
+      })(sandbox.require, sandbox.console, sandbox.express, sandbox.module);
+    `;
+    
+    // Evaluate the code in our sandbox
+    eval(modifiedCode
+      .replace('sandbox.require', 'require')
+      .replace('sandbox.console', '{log: consoleLog, error: consoleLog}')
+      .replace('sandbox.express', 'express')
+      .replace('sandbox.module', 'module')
+    );
+    
+    // Get the app instance exported by the module
+    const app = typeof module.exports === 'function' ? module.exports() : null;
+    
+    if (!app || typeof app.use !== 'function') {
+      throw new Error("The code did not return a valid Express app instance");
+    }
+    
+    // Create a test agent
+    const request = supertest(app);
+    
+    // Process test cases
+    const results = await Promise.all(testCases.map(async (testCase) => {
+      const { input, expectedOutput } = testCase;
+      let actualOutput = "";
+      let passed = false;
+      
+      // Parse the input to determine what API call to make
+      const [method, endpoint, ...restParts] = input.split(' ');
+      let body = null;
+      
+      // If there's a request body, parse it
+      if (restParts.length > 0) {
+        try {
+          body = JSON.parse(restParts.join(' '));
+        } catch (e) {
+          consoleLog(`Error parsing request body: ${e.message}`);
+        }
+      }
+      
+      try {
+        // Make the API call based on the method
+        let response;
+        switch (method) {
+          case 'GET':
+            response = await request.get(endpoint);
+            break;
+          case 'POST':
+            response = await request.post(endpoint).send(body);
+            break;
+          case 'PUT':
+            response = await request.put(endpoint).send(body);
+            break;
+          case 'DELETE':
+            response = await request.delete(endpoint);
+            break;
+          default:
+            throw new Error(`Unsupported HTTP method: ${method}`);
+        }
+        
+        // Get the response body as JSON string
+        actualOutput = response.status === 204 ? "" : JSON.stringify(response.body);
+        
+        // Check if the response matches the expected output
+        if (expectedOutput === "" && response.status === 204) {
+          // Special case for DELETE (204 No Content)
+          passed = true;
+        } else if (expectedOutput === "Array of products" && Array.isArray(response.body)) {
+          // Special case for validating array response
+          passed = Array.isArray(response.body) && response.body.length >= 2;
+          actualOutput = JSON.stringify(response.body);
+        } else if (expectedOutput === "Product with id 1" && response.body.id === 1) {
+          // Special case for validating product by id
+          passed = response.body.id === 1 && response.body.name && response.body.price;
+          actualOutput = JSON.stringify(response.body);
+        } else if (expectedOutput === "201 Created response" && response.status === 201) {
+          // Special case for validating created response
+          passed = response.status === 201 && response.body.id && response.body.name && response.body.price;
+          actualOutput = JSON.stringify(response.body);
+        } else {
+          // Standard JSON comparison
+          try {
+            if (expectedOutput && (expectedOutput.startsWith('[') || expectedOutput.startsWith('{'))) {
+              const expectedObj = JSON.parse(expectedOutput);
+              passed = JSON.stringify(expectedObj) === actualOutput;
+            } else {
+              passed = actualOutput === expectedOutput;
+            }
+          } catch (e) {
+            consoleLog(`Error comparing outputs: ${e.message}`);
+            passed = false;
+          }
+        }
+      } catch (error) {
+        actualOutput = `Error: ${error.message}`;
+        passed = false;
+      }
+      
+      return {
+        input,
+        expectedOutput,
+        actualOutput,
+        passed
+      };
+    }));
+    
+    // Overall test passed only if all individual tests passed
+    const passed = results.every(r => r.passed);
+    
+    return {
+      passed,
+      results,
+      consoleOutput
+    };
+  } catch (error) {
+    return {
+      passed: false,
+      results: testCases.map(tc => ({
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        actualOutput: `Error: ${error.message}`,
+        passed: false
+      })),
+      consoleOutput: `Error evaluating REST API: ${error.message}`
+    };
+  }
 }

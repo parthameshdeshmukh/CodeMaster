@@ -157,79 +157,141 @@ console.log(flattenArray([1, 2, 3])); // Should return [1, 2, 3]`,
  * 
  * Requirements:
  * 1. GET /api/products - Return all products
- * 2. GET /api/products/:id - Return a specific product
+ * 2. GET /api/products/:id - Return a specific product by id
  * 3. POST /api/products - Create a new product
- * 4. PUT /api/products/:id - Update a product
- * 5. DELETE /api/products/:id - Delete a product
+ * 4. PUT /api/products/:id - Update a product by id
+ * 5. DELETE /api/products/:id - Delete a product by id
  * 
  * Sample product object: { id: 1, name: 'Product 1', price: 100 }
+ * 
+ * NOTE: The function must return the Express 'app' instance at the end
+ * Do not call app.listen() as our test runner needs the app instance
  */
 
-const express = require('express');
-const app = express();
+function createProductsAPI() {
+  const express = require('express');
+  const app = express();
+  
+  // Enable JSON body parsing
+  app.use(express.json());
+  
+  // Initial product data
+  let products = [
+    { id: 1, name: 'Product 1', price: 100 },
+    { id: 2, name: 'Product 2', price: 200 }
+  ];
+  
+  // Your implementation here
+  
+  // Return the app instance
+  return app;
+}
 
-// Your implementation here
+module.exports = createProductsAPI;
 `,
-        solutionCode: `const express = require('express');
-const app = express();
-app.use(express.json());
-
-let products = [
-  { id: 1, name: 'Product 1', price: 100 },
-  { id: 2, name: 'Product 2', price: 200 }
-];
-
-// Get all products
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
-
-// Get product by id
-app.get('/api/products/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const product = products.find(p => p.id === id);
-  if (!product) return res.status(404).json({ message: 'Product not found' });
-  res.json(product);
-});
-
-// Create new product
-app.post('/api/products', (req, res) => {
-  const { name, price } = req.body;
-  if (!name || !price) return res.status(400).json({ message: 'Name and price are required' });
+        solutionCode: `function createProductsAPI() {
+  const express = require('express');
+  const app = express();
   
-  const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-  const newProduct = { id: newId, name, price };
-  products.push(newProduct);
-  res.status(201).json(newProduct);
-});
-
-// Update product
-app.put('/api/products/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = products.findIndex(p => p.id === id);
-  if (index === -1) return res.status(404).json({ message: 'Product not found' });
+  // Enable JSON body parsing
+  app.use(express.json());
   
-  const { name, price } = req.body;
-  products[index] = { ...products[index], ...(name && { name }), ...(price && { price }) };
-  res.json(products[index]);
-});
-
-// Delete product
-app.delete('/api/products/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = products.findIndex(p => p.id === id);
-  if (index === -1) return res.status(404).json({ message: 'Product not found' });
+  // Initial product data
+  let products = [
+    { id: 1, name: 'Product 1', price: 100 },
+    { id: 2, name: 'Product 2', price: 200 }
+  ];
   
-  products.splice(index, 1);
-  res.status(204).end();
-});
+  // Get all products
+  app.get('/api/products', (req, res) => {
+    res.json(products);
+  });
+  
+  // Get product by id
+  app.get('/api/products/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const product = products.find(p => p.id === id);
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    res.json(product);
+  });
+  
+  // Create new product
+  app.post('/api/products', (req, res) => {
+    const { name, price } = req.body;
+    
+    if (!name || !price) {
+      return res.status(400).json({ message: 'Name and price are required' });
+    }
+    
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    const newProduct = { id: newId, name, price };
+    
+    products.push(newProduct);
+    res.status(201).json(newProduct);
+  });
+  
+  // Update product
+  app.put('/api/products/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    const { name, price } = req.body;
+    products[index] = { 
+      ...products[index], 
+      ...(name !== undefined && { name }), 
+      ...(price !== undefined && { price }) 
+    };
+    
+    res.json(products[index]);
+  });
+  
+  // Delete product
+  app.delete('/api/products/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    products.splice(index, 1);
+    res.status(204).end();
+  });
+  
+  // Return the app instance
+  return app;
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(\`Server running on port \${PORT}\`));`,
+module.exports = createProductsAPI;`,
         testCases: [
-          { input: "GET /api/products", expectedOutput: "Array of products" },
-          { input: "GET /api/products/1", expectedOutput: "Product with id 1" },
-          { input: "POST /api/products with valid data", expectedOutput: "201 Created response" }
+          { 
+            input: "GET /api/products", 
+            expectedOutput: "[{\"id\":1,\"name\":\"Product 1\",\"price\":100},{\"id\":2,\"name\":\"Product 2\",\"price\":200}]" 
+          },
+          { 
+            input: "GET /api/products/1", 
+            expectedOutput: "{\"id\":1,\"name\":\"Product 1\",\"price\":100}" 
+          },
+          { 
+            input: "POST /api/products {\"name\":\"New Product\",\"price\":300}", 
+            expectedOutput: "{\"id\":3,\"name\":\"New Product\",\"price\":300}" 
+          },
+          { 
+            input: "PUT /api/products/2 {\"name\":\"Updated Product\"}", 
+            expectedOutput: "{\"id\":2,\"name\":\"Updated Product\",\"price\":200}" 
+          },
+          { 
+            input: "DELETE /api/products/1", 
+            expectedOutput: "" 
+          }
         ],
         points: 25,
         createdAt: new Date().toISOString(),
