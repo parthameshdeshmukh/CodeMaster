@@ -2,6 +2,7 @@
 import { Language, TestCase } from "@shared/schema";
 import express from "express";
 import supertest from "supertest";
+import { VM } from "vm2";
 
 // Simulated code execution environment
 export async function executeCode(code: string, language: Language, testCases?: TestCase[]): Promise<{
@@ -24,13 +25,15 @@ export async function executeCode(code: string, language: Language, testCases?: 
   if (!testCases || testCases.length === 0) {
     try {
       if (language === 'javascript') {
-        // Sandbox the code execution
-        const wrappedCode = `
-          (function(console) {
-            ${code}
-          })({ log: consoleLog });
-        `;
-        eval(wrappedCode);
+        // Use VM2 for secure code execution
+        const vm = new VM({
+          sandbox: {
+            console: { log: consoleLog }
+          }
+        });
+        
+        // Execute the code in the sandbox
+        vm.run(code);
       } else {
         consoleOutput = "Execution supported via Judge0 API in production environment.\n";
       }
@@ -53,32 +56,44 @@ export async function executeCode(code: string, language: Language, testCases?: 
   if (code.includes('createProductsAPI') && language === 'javascript') {
     try {
       // In the REST API challenge, we need to evaluate the user's Express app code
-      // Use Function constructor to create a sandbox instead of eval
-      const createExpress = () => express;
+      // Let's use a simpler approach with Function constructor
+      let app = null;
+      consoleLog("Running REST API evaluation in controlled environment");
       
-      const createFn = new Function('express', 'require', `
-        // Mock module exports
-        var module = { exports: null };
+      // Set up the environment for module.exports
+      const moduleSetup = `
+        const module = { exports: null };
+        const require = function(name) {
+          if (name === 'express') return expressObj;
+          throw new Error('Only express module is supported in this environment');
+        };
+      `;
+      
+      // Wrapper function to execute code
+      const executeInContext = new Function('expressObj', 'consoleLogFn', `
+        ${moduleSetup}
         
-        // Execute the student code
+        // Console log function
+        const console = { log: consoleLogFn };
+        
+        // User code execution
         ${code}
         
-        // Return the function from module.exports
+        // Return the exported function
         return module.exports;
       `);
       
-      // Execute the code and get the function
-      const productAPIFn = createFn(express, (name) => {
-        if (name === 'express') return express;
-        throw new Error(`Only 'express' module is supported in this environment`);
-      });
+      // Execute code in the context and get the result
+      const productAPIFn = executeInContext(express, consoleLog);
+      
+      consoleLog(`Exported function type: ${typeof productAPIFn}`);
       
       if (typeof productAPIFn !== 'function') {
         throw new Error("The code must export a function that creates an Express app");
       }
       
       // Call the function to get the app
-      const app = productAPIFn();
+      app = productAPIFn();
       
       if (!app || typeof app.use !== 'function') {
         throw new Error("Invalid Express app returned. Make sure your function returns an Express app.");
@@ -214,12 +229,24 @@ export async function executeCode(code: string, language: Language, testCases?: 
             // Keep as string if not valid JSON
           }
           
-          // Execute the code and call the function
-          let result;
-          eval(`
+          // Execute the code in VM2 and call the function
+          // Create VM with sandbox for safe execution
+          const vm = new VM({
+            sandbox: {
+              inputValue,
+              console: { log: consoleLog },
+              result: undefined
+            }
+          });
+          
+          // Run the code and call the function with the input
+          vm.run(`
             ${code}
             result = ${functionName}(inputValue);
           `);
+          
+          // Get the result from the sandbox
+          const result = vm.sandbox.result;
           
           // Format the result
           if (result === undefined) {
