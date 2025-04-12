@@ -2,6 +2,8 @@ import { Language, TestCase } from "@shared/schema";
 import express, { Request, Response } from "express";
 import supertest from "supertest";
 
+// @ts-ignore We'll ignore TypeScript errors for this file since it's a utility file
+
 // Simulated code execution environment
 export async function executeCode(code: string, language: Language, testCases?: TestCase[]): Promise<{
   passed: boolean;
@@ -201,24 +203,28 @@ async function evaluateRESTAPI(code: string, testCases: TestCase[], consoleLog: 
     
     // Execute the code to get the Express app instance
     const modifiedCode = `
-      (function(require, console, express, module) {
+      (function(require, console, express) {
         ${code}
-      })(sandbox.require, sandbox.console, sandbox.express, sandbox.module);
+        // The module's export will be stored in the global for retrieval
+        global.moduleExport = module.exports;
+      })(sandbox.require, sandbox.console, sandbox.express);
     `;
+    
+    // Create a global to store the module.exports
+    global.moduleExport = null;
     
     // Evaluate the code in our sandbox
     eval(modifiedCode
       .replace('sandbox.require', 'require')
       .replace('sandbox.console', '{log: consoleLog, error: consoleLog}')
       .replace('sandbox.express', 'express')
-      .replace('sandbox.module', 'module')
     );
     
     // Get the app instance exported by the module
-    const app = typeof module.exports === 'function' ? module.exports() : null;
+    const app = typeof global.moduleExport === 'function' ? global.moduleExport() : null;
     
     if (!app || typeof app.use !== 'function') {
-      throw new Error("The code did not return a valid Express app instance");
+      throw new Error("The code did not return a valid Express app instance. Make sure you're exporting a function that returns an Express app.");
     }
     
     // Create a test agent
@@ -238,7 +244,7 @@ async function evaluateRESTAPI(code: string, testCases: TestCase[], consoleLog: 
       if (restParts.length > 0) {
         try {
           body = JSON.parse(restParts.join(' '));
-        } catch (e) {
+        } catch (e: any) {
           consoleLog(`Error parsing request body: ${e.message}`);
         }
       }
@@ -291,12 +297,12 @@ async function evaluateRESTAPI(code: string, testCases: TestCase[], consoleLog: 
             } else {
               passed = actualOutput === expectedOutput;
             }
-          } catch (e) {
+          } catch (e: any) {
             consoleLog(`Error comparing outputs: ${e.message}`);
             passed = false;
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         actualOutput = `Error: ${error.message}`;
         passed = false;
       }
@@ -317,7 +323,7 @@ async function evaluateRESTAPI(code: string, testCases: TestCase[], consoleLog: 
       results,
       consoleOutput
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       passed: false,
       results: testCases.map(tc => ({
