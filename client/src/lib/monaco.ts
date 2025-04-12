@@ -19,45 +19,45 @@ export const monacoOptions = {
   fontFamily: "'Fira Code', monospace",
   lineNumbersMinChars: 3,
   scrollbar: {
-    vertical: 'auto',
-    horizontal: 'auto'
+    vertical: 'auto' as const,
+    horizontal: 'auto' as const
   },
   automaticLayout: true,
 };
 
 // Theme settings for Monaco editor
 export const monacoTheme = {
-  base: 'vs-dark' as const,
+  base: 'vs' as const, // Using light theme ('vs') instead of dark ('vs-dark')
   inherit: true,
   rules: [
-    { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
-    { token: 'keyword', foreground: '569CD6', fontStyle: 'bold' },
-    { token: 'string', foreground: 'FF9D6F' },  // Brighter orange
-    { token: 'number', foreground: '8AE234' },  // Brighter green
-    { token: 'regexp', foreground: 'FF5252' },  // Brighter red
-    { token: 'operator', foreground: 'FFFFFF' }, // Pure white
-    { token: 'namespace', foreground: '4EC9B0' },
-    { token: 'type', foreground: '4EC9B0', fontStyle: 'bold' },
-    { token: 'struct', foreground: '4EC9B0' },
-    { token: 'class', foreground: '4EC9B0', fontStyle: 'bold' },
-    { token: 'interface', foreground: '4EC9B0' },
-    { token: 'enum', foreground: '4EC9B0' },
-    { token: 'parameter', foreground: 'ADDFFF' }, // Brighter blue
-    { token: 'variable', foreground: 'ADDFFF' },  // Brighter blue
-    { token: 'property', foreground: 'ADDFFF' },  // Brighter blue
-    { token: 'function', foreground: 'DCDCAA', fontStyle: 'bold' }, // Gold color for functions
-    { token: 'identifier', foreground: 'FFFFFF' }, // User input identifiers in white
+    { token: 'comment', foreground: '008000', fontStyle: 'italic' },
+    { token: 'keyword', foreground: '0000FF', fontStyle: 'bold' },
+    { token: 'string', foreground: 'A31515' },
+    { token: 'number', foreground: '098658' },
+    { token: 'regexp', foreground: 'EE0000' },
+    { token: 'operator', foreground: '000000' },
+    { token: 'namespace', foreground: '267F99' },
+    { token: 'type', foreground: '267F99', fontStyle: 'bold' },
+    { token: 'struct', foreground: '267F99' },
+    { token: 'class', foreground: '267F99', fontStyle: 'bold' },
+    { token: 'interface', foreground: '267F99' },
+    { token: 'enum', foreground: '267F99' },
+    { token: 'parameter', foreground: '001080' },
+    { token: 'variable', foreground: '001080' },
+    { token: 'property', foreground: '001080' },
+    { token: 'function', foreground: '795E26', fontStyle: 'bold' },
+    { token: 'identifier', foreground: '001080' },
   ],
   colors: {
-    'editor.background': '#1E1E1E',
-    'editor.foreground': '#FFFFFF', // Brighter default text
-    'editorCursor.foreground': '#FFFFFF',
-    'editor.lineHighlightBackground': '#353535', // Slightly lighter for better contrast
-    'editorLineNumber.foreground': '#A0A0A0', // Brighter line numbers
-    'editor.selectionBackground': '#3D7DB5', // Brighter selection
-    'editor.selectionHighlightBackground': '#ADD6FF40', // More visible selection highlight
-    'editor.foldBackground': '#2D3B55', // Adding fold background color
-    'editorBracketMatch.background': '#556B2F', // Better bracket matching
+    'editor.background': '#FFFFFF',
+    'editor.foreground': '#000000',
+    'editorCursor.foreground': '#000000',
+    'editor.lineHighlightBackground': '#F5F5F5',
+    'editorLineNumber.foreground': '#237893',
+    'editor.selectionBackground': '#ADD6FF',
+    'editor.selectionHighlightBackground': '#D3E8F8',
+    'editor.foldBackground': '#E6F3FF',
+    'editorBracketMatch.background': '#BBDEFF',
   }
 };
 
@@ -68,7 +68,7 @@ export const loadMonaco = async () => {
   const monaco = await import('monaco-editor');
   
   // Register Monaco theme
-  monaco.editor.defineTheme('codemaster-dark', monacoTheme);
+  monaco.editor.defineTheme('codemaster-light', monacoTheme);
   
   return monaco;
 };

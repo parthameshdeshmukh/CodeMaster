@@ -164,15 +164,14 @@ console.log(flattenArray([1, 2, 3])); // Should return [1, 2, 3]`,
  * 
  * Sample product object: { id: 1, name: 'Product 1', price: 100 }
  * 
- * NOTE: The function must return the Express 'app' instance at the end
- * Do not call app.listen() as our test runner needs the app instance
+ * NOTE: This function must return the Express 'app' instance
  */
 
 function createProductsAPI() {
   const express = require('express');
   const app = express();
   
-  // Enable JSON body parsing
+  // Enable JSON body parsing middleware
   app.use(express.json());
   
   // Initial product data
@@ -181,7 +180,21 @@ function createProductsAPI() {
     { id: 2, name: 'Product 2', price: 200 }
   ];
   
-  // Your implementation here
+  // TODO: Implement the routes for products resource
+  // 1. GET /api/products - Return all products
+  
+  
+  // 2. GET /api/products/:id - Return a specific product by id
+  
+  
+  // 3. POST /api/products - Create a new product
+  
+  
+  // 4. PUT /api/products/:id - Update a product by id
+  
+  
+  // 5. DELETE /api/products/:id - Delete a product by id
+  
   
   // Return the app instance
   return app;

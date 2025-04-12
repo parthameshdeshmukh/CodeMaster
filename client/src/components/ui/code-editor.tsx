@@ -57,7 +57,7 @@ export function CodeEditor({
           readOnly,
         }}
         onMount={handleEditorDidMount}
-        theme="codemaster-dark"
+        theme="codemaster-light"
         className="w-full"
       />
     </div>
