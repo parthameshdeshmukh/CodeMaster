@@ -67,6 +67,18 @@ export async function executeCode(code: string, language: Language, testCases?: 
     try {
       // For JavaScript, evaluate the function with input
       if (language === 'javascript') {
+        // Prepare input data - convert string arrays/objects to actual JavaScript objects if needed
+        let processedInput = input;
+        try {
+          // If the input looks like a JSON array or object, parse it
+          if (input.startsWith('[') || input.startsWith('{')) {
+            processedInput = JSON.parse(input);
+          }
+        } catch (e) {
+          // If parsing fails, use the original input string
+          processedInput = input;
+        }
+        
         // Extract function name from code (simple regex approach)
         const funcNameMatch = code.match(/function\s+(\w+)/);
         if (!funcNameMatch) {
@@ -86,7 +98,13 @@ export async function executeCode(code: string, language: Language, testCases?: 
           (function(console) {
             ${code}
             try {
-              sandbox.result = ${funcName}(${JSON.stringify(input)});
+              // Handle different types of inputs
+              const processedInput = ${JSON.stringify(processedInput)};
+              const inputValue = typeof processedInput === 'string' && 
+                (processedInput.startsWith('[') || processedInput.startsWith('{')) ? 
+                JSON.parse(processedInput) : processedInput;
+              
+              sandbox.result = ${funcName}(inputValue);
             } catch (err) {
               sandbox.result = 'Error: ' + err.message;
             }
@@ -97,11 +115,31 @@ export async function executeCode(code: string, language: Language, testCases?: 
         eval(modifiedCode.replace('sandbox.result', 'result').replace('sandbox.console', 'console'));
         
         // Get result
-        actualOutput = result === undefined ? 'Error: result is not defined' : String(result);
+        if (result === undefined) {
+          actualOutput = 'Error: result is not defined';
+        } else if (typeof result === 'object') {
+          // Handle array or object results
+          actualOutput = JSON.stringify(result);
+        } else {
+          actualOutput = String(result);
+        }
         
-        // Compare with expected output
-        // Simple comparison - in a real system, this would be more sophisticated
-        passed = actualOutput.trim() === expectedOutput.trim();
+        // Compare with expected output - Handle JSON comparison for arrays/objects
+        try {
+          // If expected output looks like JSON, do a structured comparison
+          if ((expectedOutput.startsWith('[') || expectedOutput.startsWith('{')) &&
+              (actualOutput.startsWith('[') || actualOutput.startsWith('{'))) {
+            const expectedObj = JSON.parse(expectedOutput);
+            const actualObj = JSON.parse(actualOutput);
+            passed = JSON.stringify(expectedObj) === JSON.stringify(actualObj);
+          } else {
+            // Otherwise do a simple string comparison
+            passed = actualOutput.trim() === expectedOutput.trim();
+          }
+        } catch (e) {
+          // If JSON parsing fails, fall back to simple string comparison
+          passed = actualOutput.trim() === expectedOutput.trim();
+        }
       } else {
         // Simulate execution for other languages
         actualOutput = "Simulated output";

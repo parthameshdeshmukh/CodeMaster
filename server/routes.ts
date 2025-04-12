@@ -1,24 +1,159 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { executeCode } from "./judge";
-import { executeCodeSchema, Language, TestCase } from "@shared/schema";
+import { executeCodeSchema, Language, TestCase, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
 import { formatCertificateDate, generateCertificateId } from "../client/src/lib/utils";
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+
+// Authentication setup
+export function setupAuth(app: Express) {
+  // Configure passport with local strategy
+  passport.use(new LocalStrategy(
+    async (username, password, done) => {
+      try {
+        const user = await storage.getUserByUsername(username);
+        if (!user) {
+          return done(null, false, { message: 'Invalid username or password' });
+        }
+        
+        // Simple password check (in a real app, use proper hashing)
+        if (user.password !== password) {
+          return done(null, false, { message: 'Invalid username or password' });
+        }
+        
+        // Remove password before returning the user
+        const { password: _, ...userWithoutPassword } = user;
+        return done(null, userWithoutPassword);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  ));
+  
+  // Serialize and deserialize user
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+  
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      if (!user) {
+        return done(null, false);
+      }
+      // Remove password before returning the user
+      const { password: _, ...userWithoutPassword } = user;
+      done(null, userWithoutPassword);
+    } catch (error) {
+      done(error);
+    }
+  });
+  
+  // Add session and passport middleware
+  app.use(session({
+    secret: 'css-visualizer-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true in production with HTTPS
+  }));
+  
+  app.use(passport.initialize());
+  app.use(passport.session());
+}
+
+// Authentication middleware
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: 'Unauthorized - Please log in' });
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   // PUT APPLICATION ROUTES HERE
   // PREFIX ALL ROUTES WITH /api
+  
+  // ===== Authentication Routes =====
+  
+  // Login
+  app.post('/api/auth/login', (req, res, next) => {
+    passport.authenticate('local', (err: any, user: any, info: { message?: string }) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ error: info.message || 'Login failed' });
+      }
+      req.logIn(user, (err: any) => {
+        if (err) {
+          return next(err);
+        }
+        return res.json(user);
+      });
+    })(req, res, next);
+  });
+  
+  // Register
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { username, password } = insertUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already taken' });
+      }
+      
+      // Create new user
+      const newUser = await storage.createUser({ username, password });
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      // Auto login the user
+      req.logIn(userWithoutPassword, (err: any) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error logging in after registration' });
+        }
+        return res.status(201).json(userWithoutPassword);
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: 'Error registering user' });
+    }
+  });
+  
+  // Logout
+  app.post('/api/auth/logout', (req, res) => {
+    req.logout((err: any) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error logging out' });
+      }
+      res.json({ success: true });
+    });
+  });
   
   // ===== User Routes =====
   
   // Get current user
   app.get('/api/user/current', async (req, res) => {
-    // In a real application, this would be fetched from a session or JWT
-    // For demo purposes, we'll use a mock user
-    const user = await storage.getCurrentUser();
-    res.json(user);
+    if (req.isAuthenticated()) {
+      res.json(req.user);
+    } else {
+      // For demo purposes, we'll use a mock user if not authenticated
+      const user = await storage.getCurrentUser();
+      res.json(user);
+    }
   });
   
   // Get user stats

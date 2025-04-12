@@ -1,13 +1,13 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, Link } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Code, CheckCircle, IdCard, Trophy, ArrowRight } from 'lucide-react';
 
 export default function Landing() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   
   // Check if user is authenticated
   const { data: user } = useQuery<{ username: string } | null>({
@@ -16,9 +16,9 @@ export default function Landing() {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate('/dashboard');
+      setLocation('/dashboard');
     } else {
-      navigate('/dashboard'); // In a real app, would redirect to sign up/login
+      setLocation('/login');
     }
   };
 
