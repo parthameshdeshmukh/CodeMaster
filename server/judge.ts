@@ -2,7 +2,7 @@
 import { Language, TestCase } from "@shared/schema";
 import express from "express";
 import supertest from "supertest";
-import app from './app'; // Import the new Express app
+import app from './app.js'; // Import the new Express app
 
 // Simulated code execution environment
 export async function executeCode(code: string, language: Language, testCases?: TestCase[]): Promise<{
