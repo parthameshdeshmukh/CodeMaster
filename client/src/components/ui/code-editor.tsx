@@ -55,6 +55,8 @@ export function CodeEditor({
         options={{
           ...monacoOptions,
           readOnly,
+          theme: 'vs',
+          backgroundColor: '#ffffff'
         }}
         onMount={handleEditorDidMount}
         theme="codemaster-light"

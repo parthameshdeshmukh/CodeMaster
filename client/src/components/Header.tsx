@@ -57,7 +57,7 @@ export function Header() {
             </div>
             
             {user && (
-              <nav className="hidden md:ml-6 md:flex md:space-x-8">
+              <nav className="hidden md:ml-6 md:flex md:space-x-8 items-center">
                 <Link href="/challenges">
                   <a className={`border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium ${
                     location === '/challenges' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
