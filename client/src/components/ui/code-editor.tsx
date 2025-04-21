@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Editor, { Monaco } from '@monaco-editor/react';
 import { Language } from '@shared/schema';
 import { monacoLanguageMap, monacoOptions } from '@/lib/monaco';
@@ -27,9 +27,21 @@ export function CodeEditor({
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor;
+
+    // Define & apply light theme AFTER monaco is ready
+    monaco.editor.defineTheme('force-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#ffffff',
+        'editor.foreground': '#000000',
+      },
+    });
+
+    monaco.editor.setTheme('force-light');
     setIsLoading(false);
-    
-    // Focus on the editor once loaded (if not read-only)
+
     if (!readOnly) {
       setTimeout(() => {
         editor.focus();
@@ -38,30 +50,30 @@ export function CodeEditor({
   };
 
   return (
-    <div className={cn("border border-gray-300 rounded-md overflow-hidden", className)}>
-      <div className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex justify-between items-center">
-        <span className="text-sm font-medium text-gray-700">Code Editor</span>
+    <div className={cn("border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white", className)}>
+      <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+        <span className="text-sm font-semibold text-gray-800">Code Editor</span>
       </div>
 
-      {isLoading && (
-        <Skeleton className="w-full h-64" />
-      )}
+      {isLoading && <Skeleton className="w-full h-64" />}
 
-      <Editor
-        height={height}
-        language={monacoLanguageMap[language]}
-        value={value}
-        onChange={(val) => onChange(val || '')}
-        options={{
-          ...monacoOptions,
-          readOnly,
-          theme: 'vs',
-          backgroundColor: '#ffffff'
-        }}
-        onMount={handleEditorDidMount}
-        theme="codemaster-light"
-        className="w-full"
-      />
+      <div className="bg-white">
+        <Editor
+          height={height}
+          language={monacoLanguageMap[language]}
+          value={value}
+          onChange={(val) => onChange(val || '')}
+          options={{
+            ...monacoOptions,
+            readOnly,
+            fontSize: 14,
+            minimap: { enabled: false },
+            lineNumbers: 'on',
+          }}
+          onMount={handleEditorDidMount}
+          theme="force-light"
+        />
+      </div>
     </div>
   );
 }

@@ -107,10 +107,15 @@
 }
 
 /* Monaco Editor custom styles */
+.monaco-editor,
 .monaco-editor .monaco-editor-background,
-.monaco-editor .margin {
-  background-color: #1e1e1e;
+.monaco-editor .margin,
+.monaco-editor .view-lines,
+.monaco-editor .inputarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
+
 
 /* Font family overrides */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
@@ -122,3 +127,4 @@ body {
 code, pre, .font-mono {
   font-family: 'Fira Code', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
+
