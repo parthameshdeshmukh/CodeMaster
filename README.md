@@ -77,7 +77,7 @@ npm run dev
 ```
 
 4. **Access the application**
-Open [http://localhost:5000](http://localhost:5000)
+Open [http://localhost:5001](http://localhost:5001)
 
 ## 📝 Available Scripts
 
